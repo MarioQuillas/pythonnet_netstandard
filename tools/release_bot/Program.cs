@@ -71,34 +71,39 @@ namespace release_bot
                 new ReleaseSpec() { Version = V, Description = Description + netstd + "3.8 (win64)", PackageId = PackageNetstd+"_py38_win", PackageTags = Tags, Constants = "PYTHON3;PYTHON38;UCS2"+NETSTD+COMMON, RelativeProjectPath = ProjectPath, ProjectName = ProjectNameNetStandard, Framework="netstandard2.0" },
 
             };
-            foreach (var spec in specs)
+            foreach (var platform in new[] {"x86", "x64"})
             {
-                //try
+                foreach (var spec in specs)
                 {
-                    // ======================
-                    //   build 
-                    // ======================
-                    Console.WriteLine("Build " + Description);
-                    var dir = Directory.GetCurrentDirectory();
-                    var proj_path = Path.GetFullPath( Path.Combine(dir, spec.RelativeProjectPath));
-                    var out_path = Path.GetFullPath(Path.Combine(proj_path, $@"bin\{spec.PackageId}\"));
-                    var spec_path = Path.Combine(out_path, spec.PackageId+".nuspec");
-                    if (!File.Exists(Path.Combine( proj_path, spec.ProjectName)))
-                        throw new InvalidOperationException("Path to project not right: " + proj_path);
-                    // dotnet msbuild -target:Rebuild -property:OutDir=.\bin\win_py27\;Configuration=ReleaseWin;Platform=x64 Python.Runtime.csproj
-                    // 
-                    var build = $@"msbuild -target:Rebuild -restore -property:OutDir=.\bin\{spec.PackageId}\;Configuration=Release;Platform=x64;DefineConstants=\""{spec.Constants}\"" {spec.ProjectName}";
-                    var p = new Process() { StartInfo = new ProcessStartInfo("dotnet", build) { WorkingDirectory = proj_path, }};
-                    p.Start();
-                    p.WaitForExit();
+                    spec.Platform = platform;
+                    //try
+                    {
+                        // ======================
+                        //   build 
+                        // ======================
+                        Console.WriteLine("Build " + Description);
+                        var dir = Directory.GetCurrentDirectory();
+                        var proj_path = Path.GetFullPath(Path.Combine(dir, spec.RelativeProjectPath));
+                        var out_path = Path.GetFullPath(Path.Combine(proj_path, $@"bin\{spec.PackageId}\"));
+                        var spec_path = Path.Combine(out_path, spec.PackageId + ".nuspec");
+                        if (!File.Exists(Path.Combine(proj_path, spec.ProjectName)))
+                            throw new InvalidOperationException("Path to project not right: " + proj_path);
+                        // dotnet msbuild -target:Rebuild -property:OutDir=.\bin\win_py27\;Configuration=ReleaseWin;Platform=x64 Python.Runtime.csproj
+                        // 
+                        var build =
+                            $@"msbuild -target:Rebuild -restore -property:OutDir=.\bin\{spec.PackageId}\;Configuration=Release;Platform={platform};DefineConstants=\""{spec.Constants}\"" {spec.ProjectName}";
+                        var p = new Process()
+                            {StartInfo = new ProcessStartInfo("dotnet", build) {WorkingDirectory = proj_path,}};
+                        p.Start();
+                        p.WaitForExit();
 
-                    // ======================
-                    //   nuget pack
-                    // ======================
-                    File.WriteAllText(spec_path, $@"<?xml version=""1.0""?>
+                        // ======================
+                        //   nuget pack
+                        // ======================
+                        File.WriteAllText(spec_path, $@"<?xml version=""1.0""?>
 <package>
   <metadata>
-    <id>{spec.PackageId}</id>
+    <id>{spec.PackageId + (spec.Is64Bit ? "" : "_x86")}</id>
     <version>{spec.Version}</version>
     <authors>pythonnet</authors>
     <owners>pythonnet</owners>
@@ -116,17 +121,19 @@ namespace release_bot
     <file src=""Python.Runtime.xml"" target = ""lib\{spec.Framework}\"" />
   </files>
 </package>");
-                    var pack = $@"pack {spec.PackageId}.nuspec";
-                    p = new Process() { StartInfo = new ProcessStartInfo("nuget", pack) { WorkingDirectory = out_path, } };
-                    p.Start();
-                    p.WaitForExit();
+                        var pack = $@"pack {spec.PackageId}.nuspec";
+                        p = new Process()
+                            {StartInfo = new ProcessStartInfo("nuget", pack) {WorkingDirectory = out_path,}};
+                        p.Start();
+                        p.WaitForExit();
 
+                    }
+                    //catch (Exception e)
+                    //{
+                    //    Console.WriteLine(e.Message);
+                    //    Console.WriteLine(e.StackTrace);
+                    //}
                 }
-                //catch (Exception e)
-                //{
-                //    Console.WriteLine(e.Message);
-                //    Console.WriteLine(e.StackTrace);
-                //}
             }
 
             // ======================
@@ -193,5 +200,9 @@ namespace release_bot
         /// The framework identifyer net40 or netstandard2.0
         /// </summary>
         public string Framework;
+
+        public string Platform { get; set; } = "x64";
+
+        public bool Is64Bit => Platform=="x64";
     }
 }
