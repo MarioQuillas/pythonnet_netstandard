@@ -43,7 +43,7 @@
     <Python2Version>$(PYTHONNET_PY2_VERSION)</Python2Version>
     <Python2Version Condition="'$(Python2Version)'==''">PYTHON27</Python2Version>
     <Python3Version>$(PYTHONNET_PY3_VERSION)</Python3Version>
-    <Python3Version Condition="'$(Python3Version)'==''">PYTHON38</Python3Version>
+    <Python3Version Condition="'$(Python3Version)'==''">PYTHON37</Python3Version>
     <PythonWinDefineConstants>$(PYTHONNET_WIN_DEFINE_CONSTANTS)</PythonWinDefineConstants>
     <PythonWinDefineConstants Condition="'$(PythonWinDefineConstants)'==''">UCS2</PythonWinDefineConstants>
     <PythonMonoDefineConstants>$(PYTHONNET_MONO_DEFINE_CONSTANTS)</PythonMonoDefineConstants>
@@ -91,7 +91,7 @@
     <DefineConstants Condition="'$(CustomDefineConstants)' == ''">$(DefineConstants);PYTHON2;$(Python2Version);$(PythonWinDefineConstants);FINALIZER_CHECK;TRACE;DEBUG</DefineConstants>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'DebugWinPY3'">
-    <DefineConstants Condition="'$(CustomDefineConstants)' == ''">TRACE;DEBUG;;FINALIZER_CHECK;XPLAT;;PYTHON3;PYTHON37;UCS2;NETSTANDARD</DefineConstants>
+    <DefineConstants Condition="'$(CustomDefineConstants)' == ''">TRACE;DEBUG;;FINALIZER_CHECK;XPLAT;;PYTHON3;PYTHON38;UCS2;NETSTANDARD</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup Condition=" '$(PythonInteropFile)' != '' ">
